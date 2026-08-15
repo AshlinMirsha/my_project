@@ -39,20 +39,25 @@ def get_gesture(landmarks):
     if not fingers:
         return "none"
 
-    # Index only
-    if fingers == [1, 0, 0, 0]:
-        return "draw"
+    index_up = fingers[0] == 1
+    middle_up = fingers[1] == 1
+    ring_up = fingers[2] == 1
+    pinky_up = fingers[3] == 1
 
-    # Index + middle
-    if fingers == [1, 1, 0, 0]:
-        return "select"
+    # Fist
+    if fingers == [0, 0, 0, 0]:
+        return "erase"
 
-    # All fingers
+    # Open palm
     if fingers == [1, 1, 1, 1]:
         return "clear"
 
-    # No fingers
-    if fingers == [0, 0, 0, 0]:
-        return "erase"
+    # Index only
+    if index_up and not middle_up and not ring_up and not pinky_up:
+        return "draw"
+
+    # Index + middle, allow other fingers to vary a bit
+    if index_up and middle_up:
+        return "select"
 
     return "none"
