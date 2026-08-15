@@ -296,6 +296,11 @@ def main():
         # -----------------------------
 
         canvas = drawing.get_canvas()
+        canvas = cv2.resize(
+            canvas,
+            (frame.shape[1], frame.shape[0]),
+            interpolation=cv2.INTER_NEAREST
+        )
 
         output = cv2.add(
             frame,
