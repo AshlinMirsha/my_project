@@ -238,30 +238,29 @@ def main():
 
         elif gesture == "select":
 
-            # Use the fingertip closest to the toolbar for color selection.
             if point:
 
                 x, y = point
 
-                if y <= 120:
+                color_positions = {
+                    "blue": 600,
+                    "green": 670,
+                    "red": 740,
+                    "yellow": 810,
+                    "white": 880
+                }
 
-                    color_positions = {
-                        "blue": 600,
-                        "green": 670,
-                        "red": 740,
-                        "yellow": 810,
-                        "white": 880
-                    }
+                for name, center_x in color_positions.items():
 
-                    for name, center_x in color_positions.items():
+                    if abs(x - center_x) <= 45:
 
-                        if abs(x - center_x) <= 45:
+                        selected_color = name
 
-                            selected_color = name
+                        drawing.set_color(name)
 
-                            drawing.set_color(name)
+                        print(f"Selected color: {name}")
 
-                            break
+                        break
 
             drawing.previous_point = None
 
