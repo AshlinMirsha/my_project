@@ -1,5 +1,6 @@
 import cv2
 import mediapipe as mp
+import time
 
 from config import (
     MAX_HANDS,
@@ -27,8 +28,6 @@ class HandDetector:
             options
         )
 
-        self.timestamp = 0
-
     def find_hands(self, frame):
 
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -38,11 +37,11 @@ class HandDetector:
             data=rgb
         )
 
-        self.timestamp += 1
+        timestamp = int(time.time() * 1000)
 
         results = self.detector.detect_for_video(
             mp_image,
-            self.timestamp
+            timestamp
         )
 
         return frame, results
