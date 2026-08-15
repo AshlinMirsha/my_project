@@ -1,16 +1,24 @@
-import cv2
 import os
 import time
 
-from hand_detector import HandDetector
-from drawing import DrawingManager
-from gestures import get_gesture
+try:
+    import cv2
+    from hand_detector import HandDetector
+    from drawing import DrawingManager
+    from gestures import get_gesture
 
-from config import (
-    CAMERA_WIDTH,
-    CAMERA_HEIGHT,
-    COLORS
-)
+    from config import (
+        CAMERA_WIDTH,
+        CAMERA_HEIGHT,
+        COLORS
+    )
+except ModuleNotFoundError as error:
+    missing = error.name or "a required dependency"
+    print(f"ERROR: Missing dependency: {missing}")
+    print("Run the app with the project virtualenv:")
+    print("  source venv/bin/activate")
+    print("  python main.py")
+    raise SystemExit(1)
 
 
 def draw_toolbar(frame, selected_color):
