@@ -93,7 +93,7 @@ def draw_toolbar(frame, selected_color):
         cv2.circle(
             frame,
             (x, 45),
-            18,
+            22,
             color,
             -1
         )
@@ -103,7 +103,7 @@ def draw_toolbar(frame, selected_color):
             cv2.circle(
                 frame,
                 (x, 45),
-                23,
+                28,
                 (255, 255, 255),
                 2
             )
@@ -238,41 +238,30 @@ def main():
 
         elif gesture == "select":
 
-            # Use index fingertip for color selection
+            # Use the fingertip closest to the toolbar for color selection.
             if point:
 
                 x, y = point
 
-                # Color areas
-                if 580 < x < 640:
+                if y <= 120:
 
-                    selected_color = "blue"
+                    color_positions = {
+                        "blue": 600,
+                        "green": 670,
+                        "red": 740,
+                        "yellow": 810,
+                        "white": 880
+                    }
 
-                    drawing.set_color("blue")
+                    for name, center_x in color_positions.items():
 
-                elif 640 < x < 710:
+                        if abs(x - center_x) <= 45:
 
-                    selected_color = "green"
+                            selected_color = name
 
-                    drawing.set_color("green")
+                            drawing.set_color(name)
 
-                elif 710 < x < 780:
-
-                    selected_color = "red"
-
-                    drawing.set_color("red")
-
-                elif 780 < x < 850:
-
-                    selected_color = "yellow"
-
-                    drawing.set_color("yellow")
-
-                elif 850 < x < 920:
-
-                    selected_color = "white"
-
-                    drawing.set_color("white")
+                            break
 
             drawing.previous_point = None
 
