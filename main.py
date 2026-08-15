@@ -21,6 +21,28 @@ except ModuleNotFoundError as error:
     raise SystemExit(1)
 
 
+def open_camera():
+
+    camera_index = int(os.environ.get("CAMERA_INDEX", "0"))
+    max_index = int(os.environ.get("CAMERA_INDEX_MAX", "4"))
+
+    for index in range(camera_index, max_index):
+
+        cap = cv2.VideoCapture(index)
+
+        if cap.isOpened():
+            print(f"Using camera index: {index}")
+            return cap
+
+        cap.release()
+
+    print("ERROR: No camera could be opened.")
+    print("Try setting CAMERA_INDEX to a different device number.")
+    print("Example:")
+    print("  CAMERA_INDEX=1 python main.py")
+    return None
+
+
 def draw_toolbar(frame, selected_color):
 
     toolbar_height = 80
@@ -93,7 +115,10 @@ def main():
     # Camera
     # -----------------------------
 
-    cap = cv2.VideoCapture(0)
+    cap = open_camera()
+
+    if cap is None:
+        return
 
     cap.set(
         cv2.CAP_PROP_FRAME_WIDTH,
