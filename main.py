@@ -45,7 +45,7 @@ def open_camera():
 
 def draw_toolbar(frame, selected_color):
 
-    toolbar_height = 80
+    toolbar_height = 110
 
     cv2.rectangle(
         frame,
@@ -59,7 +59,7 @@ def draw_toolbar(frame, selected_color):
     cv2.putText(
         frame,
         "AIR CANVAS",
-        (20, 30),
+        (20, 32),
         cv2.FONT_HERSHEY_SIMPLEX,
         0.8,
         (255, 255, 255),
@@ -70,7 +70,7 @@ def draw_toolbar(frame, selected_color):
     cv2.putText(
         frame,
         "1F: Draw | 2F: Select | Palm: Clear | Fist: Erase",
-        (250, 28),
+        (220, 30),
         cv2.FONT_HERSHEY_SIMPLEX,
         0.5,
         (220, 220, 220),
@@ -92,7 +92,7 @@ def draw_toolbar(frame, selected_color):
 
         cv2.circle(
             frame,
-            (x, 45),
+            (x, 62),
             22,
             color,
             -1
@@ -102,11 +102,21 @@ def draw_toolbar(frame, selected_color):
 
             cv2.circle(
                 frame,
-                (x, 45),
+                (x, 62),
                 28,
                 (255, 255, 255),
                 2
             )
+
+    cv2.putText(
+        frame,
+        f"Selected: {selected_color.upper()}",
+        (20, 96),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.7,
+        COLORS[selected_color],
+        2
+    )
 
 
 def select_color_from_x(x):
@@ -242,7 +252,7 @@ def main():
             )
 
             # Top bar color picker: use fingertip position directly.
-            if point[1] <= 120:
+            if point[1] <= 180:
 
                 picked_color = select_color_from_x(point[0])
 
@@ -377,15 +387,33 @@ def main():
         # Brush sizes
         elif key == ord("1"):
 
-            drawing.set_brush_size(5)
+            selected_color = "blue"
+            drawing.set_color("blue")
+            print("Selected color: blue")
 
         elif key == ord("2"):
 
-            drawing.set_brush_size(10)
+            selected_color = "green"
+            drawing.set_color("green")
+            print("Selected color: green")
 
         elif key == ord("3"):
 
-            drawing.set_brush_size(20)
+            selected_color = "red"
+            drawing.set_color("red")
+            print("Selected color: red")
+
+        elif key == ord("4"):
+
+            selected_color = "yellow"
+            drawing.set_color("yellow")
+            print("Selected color: yellow")
+
+        elif key == ord("5"):
+
+            selected_color = "white"
+            drawing.set_color("white")
+            print("Selected color: white")
 
     # -----------------------------
     # Cleanup
