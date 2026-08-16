@@ -109,6 +109,31 @@ def draw_toolbar(frame, selected_color):
             )
 
 
+def select_color_from_x(x):
+
+    color_positions = {
+        "blue": 600,
+        "green": 670,
+        "red": 740,
+        "yellow": 810,
+        "white": 880
+    }
+
+    closest_color = None
+    closest_distance = None
+
+    for name, center_x in color_positions.items():
+
+        distance = abs(x - center_x)
+
+        if closest_distance is None or distance < closest_distance:
+
+            closest_color = name
+            closest_distance = distance
+
+    return closest_color
+
+
 def main():
 
     # -----------------------------
@@ -216,6 +241,19 @@ def main():
                 -1
             )
 
+            # Top bar color picker: use fingertip position directly.
+            if point[1] <= 120:
+
+                picked_color = select_color_from_x(point[0])
+
+                if picked_color != selected_color:
+
+                    selected_color = picked_color
+
+                    drawing.set_color(picked_color)
+
+                    print(f"Selected color: {picked_color}")
+
         # -----------------------------
         # Gesture Handling
         # -----------------------------
@@ -237,30 +275,9 @@ def main():
                 drawing.clear()
 
         elif gesture == "select":
-
-            if point:
-
-                x, y = point
-
-                color_positions = {
-                    "blue": 600,
-                    "green": 670,
-                    "red": 740,
-                    "yellow": 810,
-                    "white": 880
-                }
-
-                for name, center_x in color_positions.items():
-
-                    if abs(x - center_x) <= 45:
-
-                        selected_color = name
-
-                        drawing.set_color(name)
-
-                        print(f"Selected color: {name}")
-
-                        break
+            # Keep the gesture state, but color selection is handled above
+            # by fingertip position in the top toolbar.
+            pass
 
             drawing.previous_point = None
 

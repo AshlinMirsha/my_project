@@ -8,7 +8,7 @@ from config import (
     TRACKING_CONFIDENCE
 )
 
-
+#the hand detector
 class HandDetector:
 
     def __init__(self):
