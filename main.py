@@ -402,6 +402,8 @@ def main():
         # Status
         # -----------------------------
 
+        frame_width = output.shape[1]
+
         cv2.putText(
             output,
             f"Gesture: {gesture}",
@@ -425,22 +427,22 @@ def main():
 
         cv2.rectangle(
             output,
-            (width - 220, CAMERA_HEIGHT - 82),
-            (width - 20, CAMERA_HEIGHT - 24),
+            (frame_width - 220, CAMERA_HEIGHT - 82),
+            (frame_width - 20, CAMERA_HEIGHT - 24),
             (20, 24, 30),
             -1
         )
         cv2.rectangle(
             output,
-            (width - 220, CAMERA_HEIGHT - 82),
-            (width - 20, CAMERA_HEIGHT - 24),
+            (frame_width - 220, CAMERA_HEIGHT - 82),
+            (frame_width - 20, CAMERA_HEIGHT - 24),
             COLORS[selected_color],
             1
         )
         cv2.putText(
             output,
             "ACTIVE COLOR",
-            (width - 202, CAMERA_HEIGHT - 56),
+            (frame_width - 202, CAMERA_HEIGHT - 56),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.45,
             (210, 218, 228),
@@ -450,7 +452,7 @@ def main():
         cv2.putText(
             output,
             selected_color.upper(),
-            (width - 202, CAMERA_HEIGHT - 35),
+            (frame_width - 202, CAMERA_HEIGHT - 35),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.75,
             COLORS[selected_color],
