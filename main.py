@@ -45,45 +45,103 @@ def open_camera():
 
 def draw_toolbar(frame, selected_color):
 
-    toolbar_height = 110
+    toolbar_height = 132
+    width = frame.shape[1]
 
     cv2.rectangle(
         frame,
         (0, 0),
-        (frame.shape[1], toolbar_height),
-        (40, 40, 40),
+        (width, toolbar_height),
+        (24, 27, 34),
         -1
+    )
+
+    cv2.line(
+        frame,
+        (0, toolbar_height),
+        (width, toolbar_height),
+        (72, 78, 90),
+        1
     )
 
     # Title
     cv2.putText(
         frame,
         "AIR CANVAS",
-        (20, 32),
+        (22, 34),
         cv2.FONT_HERSHEY_SIMPLEX,
-        0.8,
+        0.95,
         (255, 255, 255),
-        2
+        2,
+        cv2.LINE_AA
     )
 
     # Instructions
     cv2.putText(
         frame,
-        "1F: Draw | 2F: Select | Palm: Clear | Fist: Erase",
-        (220, 30),
+        "Draw with one finger. Hover in the top bar to pick a color.",
+        (22, 58),
         cv2.FONT_HERSHEY_SIMPLEX,
-        0.5,
-        (220, 220, 220),
-        1
+        0.55,
+        (200, 205, 214),
+        1,
+        cv2.LINE_AA
     )
+
+    # Quick help badges
+    badges = [
+        ("1F Draw", (84, 255, 166)),
+        ("2F Pick", (127, 200, 255)),
+        ("Palm Clear", (255, 220, 120)),
+        ("Fist Erase", (255, 138, 138)),
+    ]
+
+    badge_x = 22
+    for label, color in badges:
+        text_size = cv2.getTextSize(
+            label,
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.45,
+            1
+        )[0]
+        pad_x = 12
+        pad_y = 8
+        box_w = text_size[0] + pad_x * 2
+        box_h = text_size[1] + pad_y * 2
+
+        cv2.rectangle(
+            frame,
+            (badge_x, 72),
+            (badge_x + box_w, 72 + box_h),
+            (36, 41, 52),
+            -1
+        )
+        cv2.rectangle(
+            frame,
+            (badge_x, 72),
+            (badge_x + box_w, 72 + box_h),
+            color,
+            1
+        )
+        cv2.putText(
+            frame,
+            label,
+            (badge_x + pad_x, 72 + box_h - 9),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.45,
+            (245, 247, 250),
+            1,
+            cv2.LINE_AA
+        )
+        badge_x += box_w + 10
 
     # Colors
     color_positions = {
-        "blue": 600,
-        "green": 670,
-        "red": 740,
-        "yellow": 810,
-        "white": 880
+        "blue": 610,
+        "green": 690,
+        "red": 770,
+        "yellow": 850,
+        "white": 930
     }
 
     for name, x in color_positions.items():
@@ -92,7 +150,15 @@ def draw_toolbar(frame, selected_color):
 
         cv2.circle(
             frame,
-            (x, 62),
+            (x, 102),
+            26,
+            (255, 255, 255),
+            -1
+        )
+
+        cv2.circle(
+            frame,
+            (x, 102),
             22,
             color,
             -1
@@ -102,31 +168,43 @@ def draw_toolbar(frame, selected_color):
 
             cv2.circle(
                 frame,
-                (x, 62),
-                28,
+                (x, 102),
+                32,
                 (255, 255, 255),
-                2
+                3
+            )
+
+            cv2.putText(
+                frame,
+                "ACTIVE",
+                (x - 24, 126),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.4,
+                COLORS[name],
+                1,
+                cv2.LINE_AA
             )
 
     cv2.putText(
         frame,
         f"Selected: {selected_color.upper()}",
-        (20, 96),
+        (width - 210, 34),
         cv2.FONT_HERSHEY_SIMPLEX,
         0.7,
         COLORS[selected_color],
-        2
+        2,
+        cv2.LINE_AA
     )
 
 
 def select_color_from_x(x):
 
     color_positions = {
-        "blue": 600,
-        "green": 670,
-        "red": 740,
-        "yellow": 810,
-        "white": 880
+        "blue": 610,
+        "green": 690,
+        "red": 770,
+        "yellow": 850,
+        "white": 930
     }
 
     closest_color = None
@@ -252,7 +330,7 @@ def main():
             )
 
             # Top bar color picker: use fingertip position directly.
-            if point[1] <= 180:
+            if point[1] <= 170:
 
                 picked_color = select_color_from_x(point[0])
 
@@ -329,11 +407,22 @@ def main():
         cv2.putText(
             output,
             f"Gesture: {gesture}",
-            (20, CAMERA_HEIGHT - 30),
+            (20, CAMERA_HEIGHT - 24),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.7,
-            (0, 255, 0),
+            (90, 240, 160),
             2
+        )
+
+        cv2.putText(
+            output,
+            "Tip: hover over the top colors to switch ink",
+            (20, CAMERA_HEIGHT - 52),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.55,
+            (220, 225, 235),
+            1,
+            cv2.LINE_AA
         )
 
         # -----------------------------
