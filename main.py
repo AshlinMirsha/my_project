@@ -43,181 +43,113 @@ def open_camera():
     return None
 
 
-def draw_toolbar(frame, selected_color):
+FINGER_COLOR_MAP = {
+    1: "blue",
+    2: "green",
+    3: "red",
+    4: "yellow",
+    5: "white",
+}
 
-    toolbar_height = 142
-    width = frame.shape[1]
 
-    overlay = frame.copy()
+def count_extended_fingers(landmarks):
 
-    cv2.rectangle(
-        overlay,
-        (0, 0),
-        (width, toolbar_height),
-        (18, 20, 26),
-        -1
-    )
+    if not landmarks:
+        return 0
 
-    cv2.rectangle(
-        overlay,
-        (0, 0),
-        (width, toolbar_height),
-        (255, 255, 255),
+    count = 0
+
+    # Thumb: the camera is mirrored, so x-position is the most stable signal.
+    if landmarks[4][0] < landmarks[3][0]:
+        count += 1
+
+    if landmarks[8][1] < landmarks[6][1]:
+        count += 1
+    if landmarks[12][1] < landmarks[10][1]:
+        count += 1
+    if landmarks[16][1] < landmarks[14][1]:
+        count += 1
+    if landmarks[20][1] < landmarks[18][1]:
+        count += 1
+
+    return count
+
+
+def draw_pill(frame, x, y, text, border_color, fill_color=(32, 36, 46), text_color=(245, 247, 250)):
+
+    text_size = cv2.getTextSize(
+        text,
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.48,
         1
-    )
+    )[0]
+    pad_x = 12
+    pad_y = 8
+    box_w = text_size[0] + pad_x * 2
+    box_h = text_size[1] + pad_y * 2
 
-    cv2.addWeighted(overlay, 0.88, frame, 0.12, 0, frame)
-
-    cv2.line(
+    cv2.rectangle(frame, (x, y), (x + box_w, y + box_h), fill_color, -1)
+    cv2.rectangle(frame, (x, y), (x + box_w, y + box_h), border_color, 1)
+    cv2.putText(
         frame,
-        (0, toolbar_height),
-        (width, toolbar_height),
-        (88, 96, 110),
+        text,
+        (x + pad_x, y + box_h - 9),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.48,
+        text_color,
         1,
         cv2.LINE_AA
     )
 
-    # Title
+
+def draw_toolbar(frame, selected_color, finger_count, gesture):
+
+    toolbar_height = 132
+    width = frame.shape[1]
+    accent = COLORS[selected_color]
+
+    overlay = frame.copy()
+    cv2.rectangle(overlay, (0, 0), (width, toolbar_height), (16, 18, 24), -1)
+    cv2.addWeighted(overlay, 0.9, frame, 0.1, 0, frame)
+    cv2.line(frame, (0, toolbar_height), (width, toolbar_height), (84, 92, 106), 1, cv2.LINE_AA)
+
     cv2.putText(
         frame,
         "AIR CANVAS",
-        (22, 36),
+        (22, 38),
         cv2.FONT_HERSHEY_SIMPLEX,
         1.0,
-        (255, 255, 255),
+        (245, 247, 250),
         2,
         cv2.LINE_AA
     )
-
-    # Instructions
     cv2.putText(
         frame,
-        "Draw with one finger. Hover in the top bar to pick a color.",
-        (22, 61),
+        "Show 1 to 5 fingers to switch color instantly.",
+        (22, 62),
         cv2.FONT_HERSHEY_SIMPLEX,
         0.56,
-        (205, 212, 223),
+        (196, 204, 214),
         1,
         cv2.LINE_AA
     )
 
-    # Quick help badges
-    badges = [
-        ("1F Draw", (84, 255, 166)),
-        ("2F Pick", (127, 200, 255)),
-        ("Palm Clear", (255, 220, 120)),
-        ("Fist Erase", (255, 138, 138)),
-    ]
+    draw_pill(frame, 22, 76, f"Fingers: {finger_count}", accent, fill_color=(26, 30, 40))
+    draw_pill(frame, 152, 76, f"Mode: {gesture.upper()}", accent, fill_color=(26, 30, 40))
+    draw_pill(frame, 284, 76, "Index = Draw", (84, 255, 166), fill_color=(26, 30, 40))
+    draw_pill(frame, 412, 76, "Fist = Erase", (255, 138, 138), fill_color=(26, 30, 40))
+    draw_pill(frame, 536, 76, "Palm = Clear", (255, 220, 120), fill_color=(26, 30, 40))
 
-    badge_x = 22
-    for label, color in badges:
-        text_size = cv2.getTextSize(
-            label,
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.45,
-            1
-        )[0]
-        pad_x = 12
-        pad_y = 8
-        box_w = text_size[0] + pad_x * 2
-        box_h = text_size[1] + pad_y * 2
+    palette = [("blue", 682), ("green", 754), ("red", 826), ("yellow", 898), ("white", 970)]
 
-        cv2.rectangle(frame, (badge_x, 72), (badge_x + box_w, 72 + box_h), (34, 39, 50), -1)
-        cv2.rectangle(
-            frame,
-            (badge_x, 72),
-            (badge_x + box_w, 72 + box_h),
-            color,
-            1
-        )
-        cv2.putText(
-            frame,
-            label,
-            (badge_x + pad_x, 72 + box_h - 9),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.46,
-            (245, 247, 250),
-            1,
-            cv2.LINE_AA
-        )
-        badge_x += box_w + 10
-
-    color_positions = {
-        "blue": 610,
-        "green": 690,
-        "red": 770,
-        "yellow": 850,
-        "white": 930
-    }
-
-    for name, x in color_positions.items():
+    for name, x in palette:
         color = COLORS[name]
-        ring_color = (255, 255, 255) if name == selected_color else (78, 84, 96)
-        center_radius = 23 if name == selected_color else 19
-        ring_radius = 33 if name == selected_color else 28
-
-        cv2.circle(frame, (x, 104), ring_radius, ring_color, -1)
-        cv2.circle(frame, (x, 104), center_radius, color, -1)
-
-        if name == selected_color:
-            cv2.circle(frame, (x, 104), 34, COLORS[name], 2, cv2.LINE_AA)
-            cv2.putText(
-                frame,
-                name.upper(),
-                (x - 28, 132),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.42,
-                COLORS[name],
-                1,
-                cv2.LINE_AA
-            )
-
-    cv2.putText(
-        frame,
-        f"Selected: {selected_color.upper()}",
-        (width - 220, 36),
-        cv2.FONT_HERSHEY_SIMPLEX,
-        0.72,
-        COLORS[selected_color],
-        2,
-        cv2.LINE_AA
-    )
-
-    cv2.putText(
-        frame,
-        "1-5 color keys",
-        (width - 150, 62),
-        cv2.FONT_HERSHEY_SIMPLEX,
-        0.45,
-        (205, 212, 223),
-        1,
-        cv2.LINE_AA
-    )
-
-
-def select_color_from_x(x):
-
-    color_positions = {
-        "blue": 610,
-        "green": 690,
-        "red": 770,
-        "yellow": 850,
-        "white": 930
-    }
-
-    closest_color = None
-    closest_distance = None
-
-    for name, center_x in color_positions.items():
-
-        distance = abs(x - center_x)
-
-        if closest_distance is None or distance < closest_distance:
-
-            closest_color = name
-            closest_distance = distance
-
-    return closest_color
+        active = name == selected_color
+        outer_color = (245, 247, 250) if active else (82, 88, 100)
+        cv2.circle(frame, (x, 102), 25 if active else 21, outer_color, -1)
+        cv2.circle(frame, (x, 102), 15 if active else 13, color, -1)
+        if active:
+            cv2.circle(frame, (x, 102), 29, accent, 2, cv2.LINE_AA)
 
 
 def main():
@@ -259,6 +191,7 @@ def main():
     )
 
     selected_color = "blue"
+    finger_count = 0
 
     previous_gesture = "none"
 
@@ -274,7 +207,7 @@ def main():
     print()
     print("Controls:")
     print("Index finger  -> Draw")
-    print("Two fingers   -> Color selection")
+    print("1-5 fingers   -> Color selection")
     print("Open palm     -> Clear")
     print("Fist          -> Eraser")
     print("U             -> Undo")
@@ -309,6 +242,7 @@ def main():
 
         # Detect gesture
         gesture = get_gesture(landmarks)
+        finger_count = count_extended_fingers(landmarks)
 
         # Finger position
         point = None
@@ -327,18 +261,13 @@ def main():
                 -1
             )
 
-            # Top bar color picker: use fingertip position directly.
-            if point[1] <= 190:
+            picked_color = FINGER_COLOR_MAP.get(finger_count)
 
-                picked_color = select_color_from_x(point[0])
+            if picked_color and picked_color != selected_color:
 
-                if picked_color != selected_color:
-
-                    selected_color = picked_color
-
-                    drawing.set_color(picked_color)
-
-                    print(f"Selected color: {picked_color}")
+                selected_color = picked_color
+                drawing.set_color(picked_color)
+                print(f"Selected color: {picked_color} ({finger_count} fingers)")
 
         # -----------------------------
         # Gesture Handling
@@ -379,7 +308,9 @@ def main():
 
         draw_toolbar(
             frame,
-            selected_color
+            selected_color,
+            finger_count,
+            gesture
         )
 
         # -----------------------------
@@ -406,7 +337,7 @@ def main():
 
         cv2.putText(
             output,
-            f"Gesture: {gesture}",
+            f"Gesture: {gesture} | Fingers: {finger_count}",
             (20, CAMERA_HEIGHT - 24),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.7,
@@ -416,7 +347,7 @@ def main():
 
         cv2.putText(
             output,
-            "Tip: hover over the top colors to switch ink",
+            "Tip: show 1-5 fingers to change the active color",
             (20, CAMERA_HEIGHT - 52),
             cv2.FONT_HERSHEY_SIMPLEX,
             0.55,
@@ -425,40 +356,10 @@ def main():
             cv2.LINE_AA
         )
 
-        cv2.rectangle(
-            output,
-            (frame_width - 220, CAMERA_HEIGHT - 82),
-            (frame_width - 20, CAMERA_HEIGHT - 24),
-            (20, 24, 30),
-            -1
-        )
-        cv2.rectangle(
-            output,
-            (frame_width - 220, CAMERA_HEIGHT - 82),
-            (frame_width - 20, CAMERA_HEIGHT - 24),
-            COLORS[selected_color],
-            1
-        )
-        cv2.putText(
-            output,
-            "ACTIVE COLOR",
-            (frame_width - 202, CAMERA_HEIGHT - 56),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.45,
-            (210, 218, 228),
-            1,
-            cv2.LINE_AA
-        )
-        cv2.putText(
-            output,
-            selected_color.upper(),
-            (frame_width - 202, CAMERA_HEIGHT - 35),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.75,
-            COLORS[selected_color],
-            2,
-            cv2.LINE_AA
-        )
+        cv2.rectangle(output, (frame_width - 240, CAMERA_HEIGHT - 92), (frame_width - 20, CAMERA_HEIGHT - 24), (20, 24, 30), -1)
+        cv2.rectangle(output, (frame_width - 240, CAMERA_HEIGHT - 92), (frame_width - 20, CAMERA_HEIGHT - 24), COLORS[selected_color], 1)
+        cv2.putText(output, "ACTIVE COLOR", (frame_width - 222, CAMERA_HEIGHT - 64), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (210, 218, 228), 1, cv2.LINE_AA)
+        cv2.putText(output, selected_color.upper(), (frame_width - 222, CAMERA_HEIGHT - 39), cv2.FONT_HERSHEY_SIMPLEX, 0.78, COLORS[selected_color], 2, cv2.LINE_AA)
 
         # -----------------------------
         # Display
